@@ -21,6 +21,9 @@ void allocate_memory();
 void free_mem();
 void start_clock();
 void end_clock();
+void sendtomaster(int taskid, int mesh, double *P);
+void receivefrmworker(double *P, int pmesh);
+void mpiexchange(int taskid, int pmesh, double *P);
 //*****************************MPI variables**********************************//
 int numtasks, numworkers, taskid, rank, dest;
 int averow, extra, offset;
@@ -37,19 +40,17 @@ int t;
 //****************************************************************************//
 int main(int argc, char *argv[]){
 
-
   MPI_Init(&argc,&argv);
-  start_clock();
-  MPI_Comm_size(MPI_COMM_WORLD,&numtasks);
+  MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
   numworkers = numtasks - 1;
-  MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
+  MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
 
   allocate_rows();
   allocate_memory();
 
   if(taskid == MASTER){ // This code fragment runs in the master porcesses
-    printf("This is the Master.");
-
+    start_clock();
+    printf("This is the Master.\n");
     //***********main solver loop**********************************************//
       for (t = 1; t <= tsteps; t++) {
     //**********File output routine********************************************//
@@ -58,13 +59,14 @@ int main(int argc, char *argv[]){
         }
         printf("iteration no. %d \n",t);
       }
+      end_clock();
   } else { // This code fragment runs in the worker processes
       printf("This is worker no. :%d with rows:%d\n", taskid, rows);
 
     //************main solver loop*********************************************//
       for (t = 1; t <= tsteps; t++) {
 
-        phi_solver();
+        // phi_solver();
     //**********File output routine**************************************************//
         if(t%savet == 0){
           //send to master
@@ -72,8 +74,8 @@ int main(int argc, char *argv[]){
       }
   }
   free_mem();
-  end_clock();
   MPI_Finalize();
+
   return(0);
 }
 void allocate_rows() {
@@ -135,7 +137,7 @@ void free_mem(){
     free(phi_old);
     free(phi_new);
     free(mu_new);
-    free(phi_new);
+    free(mu_old);
     free(lap_phi);
     free(lap_mu);
     free(dphi_now);
@@ -171,7 +173,7 @@ void sendtomaster(int taskid, int mesh, double *P) {
     MPI_Send(&P[mesh], rows*mesh, MPI_DOUBLE,     dest, WRITE, MPI_COMM_WORLD);
   }
 }
-void receivefrmworker() {
+void receivefrmworker(double *P, int pmesh) {
   int rank;
   for (rank=1; rank <= numworkers; rank++) {
     source = rank;
@@ -182,7 +184,7 @@ void receivefrmworker() {
     MPI_Recv(&P[offset*pmesh],    rows*pmesh,    MPI_DOUBLE,    source,   WRITE,  MPI_COMM_WORLD, &status);
   }
 }
-void mpiexchange(int taskid) {
+void mpiexchange(int taskid, int pmesh, double *P) {
   if ((taskid%2) == 0) {
     if (taskid != (numworkers)) {
       MPI_Send(&P[end*pmesh],       pmesh, MPI_DOUBLE,  right_node, LTAG,      MPI_COMM_WORLD);

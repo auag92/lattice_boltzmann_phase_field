@@ -2,7 +2,7 @@
 #define dx       1
 #define dy       dx
 #define dt       1.0
-#define Mx       100
+#define Mx       300
 #define My       Mx
 #define M2       Mx*My
 #define Q        9   // no. of nodes in the LBM model
@@ -59,7 +59,7 @@ int t;
 /*************Activate lbm fluid solver****************************************/
 // #define LBM
 /******************************************************************************/
-#define tsteps  1000000 // no. of iterations
+#define tsteps  10 // no. of iterations
 #define savet   1000  //file saving steps
 #define ftag    102
 #ifndef PHI
