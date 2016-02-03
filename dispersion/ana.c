@@ -144,7 +144,7 @@ main(int argc, char *argv[])
    //====================================================================//
     k_omega     = K_omega(omega);
     omega_tilde = Omega_tilda(k_omega);
-
+    b = Gamma*omega*omega/(mu_eq*(1-k));
     //so the amplification factor
     ampl_fac = omega_tilde*V*(-(b/G) + (1.0/omega_tilde)*(k_omega - (V/D_L[0][0])));
 
