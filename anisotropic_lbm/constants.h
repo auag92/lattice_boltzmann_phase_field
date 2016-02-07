@@ -46,7 +46,7 @@
 #define Mob     (1.0)             /*Mobility*/
 #define E       (4.0)            /*epsilon - dimensions of length [m]*/
 #define tau     (1.0)
-#define radius2  100
+#define radius2  200
 #define deltaMu (0.4)
 #define Mu      (1.0)
 #define Dab     (0.04)      // Strength of Anisotropy
@@ -62,9 +62,9 @@ int t;
 // #define LBM
 /******************************************************************************/
 #define tol     10e-6
-#define tsteps  1000000 // no. of iterations
-#define savet   1000  //file saving steps
-#define ftag    105
+#define tsteps  100000 // no. of iterations
+#define savet   100  //file saving steps
+#define ftag    106
 #ifndef PHI
   #define SMOOTH  1
 #endif
