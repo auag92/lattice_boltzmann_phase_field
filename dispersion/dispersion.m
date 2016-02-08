@@ -9,21 +9,17 @@
 % % G       = -1*mu_eq*(1-k)/D
 % G       = -1*c_eq*(1-k)/D
 
-V       =  1e-1;
+V       =  1.8e-2;
 c_eq    =  1.0;
-k       =  0.4;
+k       =  0.2;
 D       =  1;
 Gamma   =  1;
-m       =  246;
-G       =  -1*c_eq*(1-k)/(D*V);
+G       =  -1*c_eq*(1-k)*V/(D);
 c_str   =  c_eq*(k-1);
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++%
-fname = "dispersion.dat";
-fp    = fopen(fname, 'w');
-%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++%
 omega_init  = 0;
-omega_final = 8.0;
+omega_final = 0.106;
 omega_step  = (omega_final - omega_init)/1000;
 indx        = 1000;
 ampl_fac    = zeros(indx);
@@ -36,7 +32,7 @@ for i = 2:indx
   first_term    =  V/(2.0*D);
   first_term_sq =  first_term*first_term;
   k_omega       =  first_term + sqrt(first_term_sq + (omega(i)*omega(i)));
-  omega_tilda   =  k_omega - (V*(1.0-k)/D);
+  % omega_tilda   =  k_omega - (V*(1.0-k)/D);
   % b             =  Gamma*omega(i)*omega(i)/(mu_eq*(1-k));
   % b             = -1.0*(Gamma*omega_sqr)/m;
   b             = (Gamma*omega_sqr)/c_str;
@@ -49,5 +45,4 @@ for i = 2:indx
 endfor
 disp(omega(indx));
 plot(omega, ampl_fac)
-fclose(fp);
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++%

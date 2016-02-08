@@ -2,7 +2,7 @@
 #define dx       1
 #define dy       dx
 #define dt       1.0
-#define Mx       1000
+#define Mx       600
 #define My       Mx
 #define M2       Mx*My
 #define Q        9   // no. of nodes in the LBM model
@@ -63,7 +63,7 @@ int t;
 /******************************************************************************/
 #define tol     10e-6
 #define tsteps  100000 // no. of iterations
-#define savet   100  //file saving steps
+#define savet   500  //file saving steps
 #define ftag    106
 #ifndef PHI
   #define SMOOTH  1
@@ -74,5 +74,5 @@ int t;
 #endif
 
 /******************************************************************************/
-// #define ISO
-#define ANISO
+#define ISO
+// #define ANISO
