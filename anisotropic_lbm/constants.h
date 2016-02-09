@@ -2,7 +2,7 @@
 #define dx       1
 #define dy       dx
 #define dt       1.0
-#define Mx       600
+#define Mx       200
 #define My       Mx
 #define M2       Mx*My
 #define Q        9   // no. of nodes in the LBM model
@@ -36,16 +36,16 @@
 
 #define MESHX  Mx
 #define MESHX2 (MESHX*MESHX)
-#define deltat (0.02)
-#define deltax (1.0)
+#define deltat (0.04)
+#define deltax (2.0)
 #define inv_deltax (1./deltax)
 #define deltax2 (deltax*deltax)
 
 #define K       (0.2)             /*Partition Coefficient*/
 #define G       (1.0)             /*Surface Energy*/
 #define Mob     (1.0)             /*Mobility*/
-#define E       (4.0)            /*epsilon - dimensions of length [m]*/
-#define tau     (1.0)
+#define E       (8.0)            /*epsilon - dimensions of length [m]*/
+#define tau     (0.8)
 #define radius2  200
 #define deltaMu (0.4)
 #define Mu      (1.0)
@@ -74,5 +74,5 @@ int t;
 #endif
 
 /******************************************************************************/
-#define ISO
-// #define ANISO
+// #define ISO
+#define ANISO

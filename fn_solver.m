@@ -1,7 +1,7 @@
 syms V c_eq c_str k D Gamma m G omega k_omega
 
 
-V       =  2e-2;
+V       =  1.2e-2;
 c_eq    =  1.0;
 k       =  0.2;
 D       =  1;

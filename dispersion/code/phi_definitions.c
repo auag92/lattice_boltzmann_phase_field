@@ -1,7 +1,6 @@
 #include "constants.h"
 #include "variables.h"
 //*****************************************************************************//
-//*****************************************************************************//
 void    phi_allocate_memory();
 void    phi_initialize();
 void    phi_boundary(double *c);
@@ -17,9 +16,7 @@ double  div_phi(int i);
 void    fnupdate();
 void    phi_free_memory();
 //*****************************************************************************//
-//*****************************************************************************//
 double inv_deltax2 = (1.0/deltax2);
-//*****************************************************************************//
 //*****************************************************************************//
 void phi_allocate_memory(){
   phi_old   = (double *)malloc(Mx*My*sizeof(double));
@@ -33,7 +30,6 @@ void phi_allocate_memory(){
   dphi_next = (double *)malloc(Mx*4*sizeof(double));
 }
 //*****************************************************************************//
-//*****************************************************************************//
 void laplacian(double *f, double *lap) {
   long i, j, z;
   for (i = 1; i < Mx -1; i++)
@@ -41,7 +37,7 @@ void laplacian(double *f, double *lap) {
     for (j = 1; j < My -1; j++)
     {
       z = i*My + j;
-      lap[z] = (f[z-1] + f[z+1] -2.0*f[z])*inv_deltax2 + (f[z+MESHX] + f[z-MESHX] -2.0*f[z])*inv_deltax2 ;
+      lap[z] = (f[z-1] + f[z+1] -2.0*f[z])*inv_deltax2 + (f[z+My] + f[z-My] -2.0*f[z])*inv_deltax2 ;
     }
   }
  }
@@ -141,7 +137,7 @@ for ( i = 0; i < Mx; i++)
   for ( j=0; j < My; j++)
   {
     z= i*My + j;
-    if(i < Mx/10){
+    if(i < Init_Length){
       phi_old[z] = 1.0;
     }
     else{
@@ -151,14 +147,35 @@ for ( i = 0; i < Mx; i++)
   }
 }
 #endif
+#ifdef SineFront
+  double delta;
+  for ( i = 0; i < Mx; i++)
+  {
+    for ( j=0; j < My; j++)
+    {
+      z= i*My + j;
+      delta = Init_Length + Amp*sin(M_PI/My*j + M_PI/2.0);
+      if(i <= delta){
+        phi_old[z] = 1.0;
+      }
+      else{
+        phi_old[z] = 0.0;
+      }
+      if( i == delta){
+        mu_old[z] = Mu;
+      }else{
+        mu_old[z] = Mu - deltaMu;
+      }
+    }
+  }
+#endif
 }
-//*****************************************************************************//
 //*****************************************************************************//
 void phi_boundary(double *c) {
 
   int i ,j ,y ,z;
   //Top - Bottom
-  for (j = 0; j < My -1; j++)
+  for (j = 0; j <= My -1; j++)
   {
     c[j]            = c[My + j];
     c[MESHX2-My+j]  = c[MESHX2-2*My+j];
@@ -188,7 +205,7 @@ void isotropic_solverloop() {
       phi_new[z] = p + deltat*(dp_dt);
 
       dc_dx = (conc[z+1]-conc[z-1])*0.5*inv_deltax;
-      dc_dy = (conc[z+MESHX]-conc[z-MESHX])*0.5*inv_deltax;
+      dc_dy = (conc[z+My]-conc[z-My])*0.5*inv_deltax;
       // V_gradC = u[z]*dc_dx + v[z]*dc_dy;
 
       dmu_dt = Mob*lap_mu[z] - V_gradC - (K-1)*mu_old[z]*6*p*(1-p)*dp_dt;
@@ -199,124 +216,120 @@ void isotropic_solverloop() {
   }
 }
 /******************************************************************************/
-//*****************************************************************************//
-void anisotropic_solverloop(){
-
-  int       i, j, z;
-  double    p,dp_dt,dmu_dt;
-  double    drv_frce, alln_chn;
-  double    Gamma, kai;
-  double    dc_dx, dc_dy, V_gradC = 0.0;
-
-  grad_phi(1, dphi_now);
-
-  for (i = 1; i < (Mx-1); i++) {
-    grad_phi(i+1, dphi_next);
-    for (j=1; j < (My-1); j++){
-
-      z =   i*My + j;
-      p =   phi_old[z];
-
-      Gamma         =     div_phi(j);           // Gamma = 2*G*lap_phi[z];
-      drv_frce      =     (mu_old[z] - Mu)*(K-1)*(mu_old[z])*6*p*(1-p);
-      alln_chn      =     E*Gamma - (G/E)*18.0*(p)*(1.0-p)*(1.0-2.0*p);
-      dp_dt         =     (alln_chn + drv_frce)/(tau*E);
-
-      phi_new[z]    =     p + deltat*dp_dt;
-
-      dc_dx         =     (conc[z+1]-conc[z-1])*0.5*inv_deltax;
-      dc_dy         =     (conc[z+MESHX]-conc[z-MESHX])*0.5*inv_deltax;
-      // V_gradC       =     u[z]*dc_dx + v[z]*dc_dy;
-
-      dmu_dt        =     Mob*lap_mu[z] - V_gradC - (K-1)*mu_old[z]*6*p*(1-p)*dp_dt;
-      // dmu_dt        =     Mob*lap_mu[z] - (K-1)*mu_old[z]*6*p*(1-p)*dp_dt;
-      kai           =     1+(K-1)*p*p*(3-2*p);
-      mu_new[z]     =     mu_old[z]  + deltat*dmu_dt/kai;
-    }
-    fnupdate();
-  }
-}
-/******************************************************************************/
-//*****************************************************************************//
-void grad_phi(int i, double *d_phi){
-
- 	int j,z;
-
-  for(j=1; j<MESHX-1; j++){
-    z = i * MESHX + j;
-    if (  i == MESHX -1 ){
-      d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
-      d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
-    }
-    else {
-      d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
-      d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
-      d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
-      d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
-     }
-  }
-  if (  i != MESHX-1  ) {
-    z = i * MESHX + j;
-    d_phi[j]           = (phi_old[z] - phi_old[z-1])*inv_deltax;
-    d_phi[MESHX+j]     = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
-  }
-}
-/******************************************************************************/
-//*****************************************************************************//
-double dqdx( double phi_x, double phi_y) {
-
-	double   a, phi_x2, phi_x4, phi_y2, phi_y4, inv_phi;
-	int      z;
-  double   ans = 0;
-  double   part1, part2, part3, part4;
-  phi_x2    =   phi_x *phi_x;
-  phi_y2    =   phi_y *phi_y;
-  phi_y4    =   phi_y2 *phi_y2;
-  phi_x4    =   phi_x2 *phi_x2;
-
-  if ((phi_x2> 1e-15) && (phi_y2> 1e-15)){
-    inv_phi    =    1/(phi_x2+phi_y2);
-    part1      =    (1-Dab*(3-4*(phi_x4+phi_y4)*inv_phi*inv_phi));
-    part2      =    2*G*E*part1*part1*phi_x;
-    part3      =    32*G*E*Dab*(phi_x2+phi_y2)*(part1);
-    part4      =    phi_x2*phi_x*inv_phi*inv_phi - phi_x*(phi_x4+phi_y4)*inv_phi*inv_phi*inv_phi;
-
-    ans        =    part2 + part3*part4;
-  }
-
-  return ans;
-}
-/******************************************************************************/
-//*****************************************************************************//
-double div_phi(int i){
-
-  double    ans;
-	double    x_next,    x_now;
-	double    y_next,    y_now;
-
-  x_now     = dqdx(dphi_now[i], dphi_now[i+MESHX]);
-  x_next    = dqdx(dphi_now[i+1], dphi_now[i+1+MESHX]);
-  y_now     = dqdx(dphi_now[i+2*MESHX], dphi_now[i+3*MESHX]);
-  y_next    = dqdx(dphi_next[i+2*MESHX], dphi_next[i+3*MESHX]);
-	ans       = ((x_next - x_now) + ( y_next - y_now))*inv_deltax;
-
-  return ans;
-}
-//*****************************************************************************//
-//*****************************************************************************//
-void fnupdate()
-{
-  int i;
-
-  for( i=0; i < MESHX; i++ ) {
-    dphi_now[i]           =   dphi_next[i];
-    dphi_now[MESHX+i]     =   dphi_next[MESHX+i];
-    dphi_now[2*MESHX+i]   =   dphi_next[2*MESHX+i];
-    dphi_now[3*MESHX+i]   =   dphi_next[3*MESHX+i];
-  }
-}
-//*****************************************************************************//
-//*****************************************************************************//
+// void anisotropic_solverloop(){
+//
+//   int       i, j, z;
+//   double    p,dp_dt,dmu_dt;
+//   double    drv_frce, alln_chn;
+//   double    Gamma, kai;
+//   double    dc_dx, dc_dy, V_gradC = 0.0;
+//
+//   grad_phi(1, dphi_now);
+//
+//   for (i = 1; i < (Mx-1); i++) {
+//     grad_phi(i+1, dphi_next);
+//     for (j=1; j < (My-1); j++){
+//
+//       z =   i*My + j;
+//       p =   phi_old[z];
+//
+//       Gamma         =     div_phi(j);           // Gamma = 2*G*lap_phi[z];
+//       drv_frce      =     (mu_old[z] - Mu)*(K-1)*(mu_old[z])*6*p*(1-p);
+//       alln_chn      =     E*Gamma - (G/E)*18.0*(p)*(1.0-p)*(1.0-2.0*p);
+//       dp_dt         =     (alln_chn + drv_frce)/(tau*E);
+//
+//       phi_new[z]    =     p + deltat*dp_dt;
+//
+//       dc_dx         =     (conc[z+1]-conc[z-1])*0.5*inv_deltax;
+//       dc_dy         =     (conc[z+MESHX]-conc[z-MESHX])*0.5*inv_deltax;
+//       // V_gradC       =     u[z]*dc_dx + v[z]*dc_dy;
+//
+//       dmu_dt        =     Mob*lap_mu[z] - V_gradC - (K-1)*mu_old[z]*6*p*(1-p)*dp_dt;
+//       // dmu_dt        =     Mob*lap_mu[z] - (K-1)*mu_old[z]*6*p*(1-p)*dp_dt;
+//       kai           =     1+(K-1)*p*p*(3-2*p);
+//       mu_new[z]     =     mu_old[z]  + deltat*dmu_dt/kai;
+//     }
+//     fnupdate();
+//   }
+// }
+// /******************************************************************************/
+// void grad_phi(int i, double *d_phi){
+//
+//  	int j,z;
+//
+//   for(j=1; j<MESHX-1; j++){
+//     z = i * MESHX + j;
+//     if (  i == MESHX -1 ){
+//       d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
+//       d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+//     }
+//     else {
+//       d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
+//       d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+//       d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
+//       d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+//      }
+//   }
+//   if (  i != MESHX-1  ) {
+//     z = i * MESHX + j;
+//     d_phi[j]           = (phi_old[z] - phi_old[z-1])*inv_deltax;
+//     d_phi[MESHX+j]     = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+//   }
+// }
+// /******************************************************************************/
+// double dqdx( double phi_x, double phi_y) {
+//
+// 	double   a, phi_x2, phi_x4, phi_y2, phi_y4, inv_phi;
+// 	int      z;
+//   double   ans = 0;
+//   double   part1, part2, part3, part4;
+//   phi_x2    =   phi_x *phi_x;
+//   phi_y2    =   phi_y *phi_y;
+//   phi_y4    =   phi_y2 *phi_y2;
+//   phi_x4    =   phi_x2 *phi_x2;
+//
+//   if ((phi_x2> 1e-15) && (phi_y2> 1e-15)){
+//     inv_phi    =    1/(phi_x2+phi_y2);
+//     part1      =    (1-Dab*(3-4*(phi_x4+phi_y4)*inv_phi*inv_phi));
+//     part2      =    2*G*E*part1*part1*phi_x;
+//     part3      =    32*G*E*Dab*(phi_x2+phi_y2)*(part1);
+//     part4      =    phi_x2*phi_x*inv_phi*inv_phi - phi_x*(phi_x4+phi_y4)*inv_phi*inv_phi*inv_phi;
+//
+//     ans        =    part2 + part3*part4;
+//   }
+//
+//   return ans;
+// }
+// /******************************************************************************/
+// double div_phi(int i){
+//
+//   double    ans;
+// 	double    x_next,    x_now;
+// 	double    y_next,    y_now;
+//
+//   x_now     = dqdx(dphi_now[i], dphi_now[i+MESHX]);
+//   x_next    = dqdx(dphi_now[i+1], dphi_now[i+1+MESHX]);
+//   y_now     = dqdx(dphi_now[i+2*MESHX], dphi_now[i+3*MESHX]);
+//   y_next    = dqdx(dphi_next[i+2*MESHX], dphi_next[i+3*MESHX]);
+// 	ans       = ((x_next - x_now) + ( y_next - y_now))*inv_deltax;
+//
+//   return ans;
+// }
+// //*****************************************************************************//
+// //*****************************************************************************//
+// void fnupdate()
+// {
+//   int i;
+//
+//   for( i=0; i < MESHX; i++ ) {
+//     dphi_now[i]           =   dphi_next[i];
+//     dphi_now[MESHX+i]     =   dphi_next[MESHX+i];
+//     dphi_now[2*MESHX+i]   =   dphi_next[2*MESHX+i];
+//     dphi_now[3*MESHX+i]   =   dphi_next[3*MESHX+i];
+//   }
+// }
+// //*****************************************************************************//
+// //*****************************************************************************//
 void phi_free_memory() {
   free(phi_old);
   free(phi_new);
