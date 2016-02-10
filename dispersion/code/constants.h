@@ -1,6 +1,6 @@
 /*********************Parameters for Phi Solver*******************************/
-#define Mx     400
-#define My       55
+#define Mx     500
+#define My       75
 #define MESHX2 (Mx*My)
 #define deltat (0.02)
 #define deltax (1.0)
@@ -11,7 +11,7 @@
 #define G       (1.0)             /*Surface Energy*/
 #define Mob     (1.0)             /*Mobility*/
 #define E       (4.0)            /*epsilon - dimensions of length [m]*/
-#define tau     (1.0)
+#define tau     (0.41)
 #define deltaMu (0.4)
 #define Mu      (1.0)
 #define Dab     (0.04)          // Strength of Anisotropy
@@ -22,18 +22,18 @@
 #ifdef Centre
   #define RADIUS2  200
 #endif
-#define SineFront
+// #define SineFront
 #define Amp 5
 #define Init_Length Mx/10
-// #define PlaneFront
+#define PlaneFront
 //****************************************************************************//
 int t;
 /*************Activate Phi Solver**********************************************/
 #define PHI
 /******************************************************************************/
-#define tsteps  500000 // no. of iterations
+#define tsteps  600000 // no. of iterations
 #define savet   1000  //file saving steps
-#define ftag 9
+#define ftag 31
 /*****************Toggle Isotropy-Anisotropy*************************************************************/
 #define ISO
 // #define ANISO

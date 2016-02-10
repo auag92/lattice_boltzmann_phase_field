@@ -1,6 +1,6 @@
 %================================Constants==============================
-V       =  1.2e-2;
-c_eq    =  1.0;
+V       =  0.25e-2;
+c_eq    =  1.00;
 k       =  0.2;
 D       =  1;
 Gamma   =  1;
@@ -8,7 +8,7 @@ G       =  -1*c_eq*(1-k)*V/(D);
 c_str   =  c_eq*(k-1);
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++%
 omega_init  = 0;
-omega_final = 0.8;
+omega_final = 0.04;
 omega_step  = (omega_final - omega_init)/1000;
 indx        = 1000;
 ampl_fac    = zeros(indx);
@@ -29,7 +29,8 @@ for i = 2:indx
   % ampl_fac(i)   =  -D*G*Gamma*omega_sqr/(m*c_eq*c_eq*(1-k)) + G*V/(c_eq*(1-k)) - D/(c_eq*(1-k))*k_omega*(G + Gamma*omega_sqr/m); % From Sashank
   % ampl_fac(i)   =  -D*b/(mu_str)*(G/mu_eq + k_omega) + G*D*k_omega/mu_str*(1-V/(k_omega*D));
   % ampl_fac(i)   =  omega_tilda*V*(-(b/G) + (1.0/omega_tilda)*(k_omega - (V/D)));
-endfor
+end
+f = load('delta.dat');
 disp(omega(indx));
 plot(omega, ampl_fac)
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++%
