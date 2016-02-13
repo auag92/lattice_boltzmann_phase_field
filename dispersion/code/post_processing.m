@@ -12,14 +12,13 @@ for k = 1:len
     while(c == 0)
         if(A(indx,3) < 0.5)            
             c = 1;
-            sl = A(indx,3) - A(indx-My,3);
             data(k,4) = A(indx,3);
         else
             indx = indx+My;
         end
     end
-    left(k,1) = (indx-1)/My;
-    data(k,1) = (indx-1)/My;
+    sl = A(indx,3) - A(indx-My,3);
+    data(k,1) = (indx-1)/My + (0.5 - A(indx,3))/sl;
     indx = My;
     c = 0;
     while(c == 0)
@@ -30,10 +29,9 @@ for k = 1:len
             indx = indx+My;
         end
     end
-    right(k,1)  = (indx-1)/My;
-    data(k,2)   = (indx-1)/My;
-    delta(k,1)  = (left(k)-right(k))/2.0;
-    data(k,3)   = (left(k)-right(k))/2.0;    
+    sl          = A(indx,3) - A(indx-My,3);
+    data(k,2)   = (indx-My)/My + (0.5 - A(indx,3))/sl;
+    data(k,3)   = (data(k,1)-data(k,2))/2.0;    
 end
-fname = sprintf('%d.dat',2);
+fname = sprintf('%d.dat',My);
 dlmwrite(fname, data);

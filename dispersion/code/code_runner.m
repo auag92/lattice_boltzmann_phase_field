@@ -1,5 +1,5 @@
 mesh = 50;
-for i = 26:36
+for i = 51:80
   % Read txt into cell A
   fid = fopen('constants.h','r+');
   j = 1;

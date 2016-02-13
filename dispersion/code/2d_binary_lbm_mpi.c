@@ -38,7 +38,7 @@ void file_output(){
 
   write2file(t,phi_old,fname1);
   write2file(t,mu_old,fname2);
-  write2file(t,mu_old,fname3);
+  //write2file(t,conc,fname3);
 }
 void write2file1( int t, double *c, double *d, char *fname) {
   int i,j,z;

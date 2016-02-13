@@ -195,7 +195,8 @@ void isotropic_solverloop() {
   int    i,j,z;
   double p,dp_dt,dmu_dt, kai;
   double dc_dx, dc_dy, V_gradC = 0.0;
-
+  double mob;
+  
   for (i = 1; i < Mx-1; i++) {
     for (j = 1; j < My-1; j++){
       z = i*My + j;
@@ -207,9 +208,10 @@ void isotropic_solverloop() {
       dc_dx = (conc[z+1]-conc[z-1])*0.5*inv_deltax;
       dc_dy = (conc[z+My]-conc[z-My])*0.5*inv_deltax;
       // V_gradC = u[z]*dc_dx + v[z]*dc_dy;
-
-      dmu_dt = Mob*lap_mu[z] - V_gradC - (K-1)*mu_old[z]*6*p*(1-p)*dp_dt;
-      kai = 1+(K-1)*p*p*(3-2*p);
+      
+      mob    = Ds*p + Dl*(1-p);
+      dmu_dt = mob*lap_mu[z] - V_gradC - (K-1)*mu_old[z]*6*p*(1-p)*dp_dt;
+      kai    = 1+(K-1)*p*p*(3-2*p);
 
       mu_new[z] = mu_old[z]  + deltat*dmu_dt/kai;
     }
