@@ -9,6 +9,7 @@ function file_processing(My)
       c = 0;
       indx = 1;
       while(c == 0)
+          A(indx,3)
           if(A(indx,3) < 0.5)
               c = 1;
               data(k,4) = A(indx,3);

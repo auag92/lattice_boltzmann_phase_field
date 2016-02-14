@@ -1,5 +1,5 @@
-mesh = 50;
-for i = 51:80
+mesh = 55;
+for i = 2:31
   % Read txt into cell A
   fid = fopen('constants.h','r+');
   j = 1;
@@ -12,7 +12,7 @@ for i = 51:80
   end
   fclose(fid);
 
-  replace_string = sprintf("#define My    %d", mesh);
+  replace_string = sprintf("#define My       %d", mesh);
   A{1,3} =  replace_string;
   replace_string = sprintf("#define ftag %d", i);
   A{1,36} =  replace_string;
